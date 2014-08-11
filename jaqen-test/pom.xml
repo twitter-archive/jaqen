@@ -17,7 +17,7 @@
   <dependencies>
     <dependency>
       <groupId>com.twitter</groupId>
-      <artifactId>jaqen</artifactId>
+      <artifactId>jaqen-ntuple</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

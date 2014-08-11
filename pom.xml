@@ -77,7 +77,7 @@
   </properties>
 
   <modules>
-    <module>jaqen</module>
+    <module>jaqen-ntuple</module>
     <module>jaqen-test</module>
   </modules>
 
