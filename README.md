@@ -12,7 +12,7 @@ The build runs in [Travis CI](http://travis-ci.org/twitter/jaqen):
 ## API: 
 https://github.com/julienledem/Jaqen/blob/master/jaqen/src/main/scala/ntuple/NTuple.scala#L355
 
-```
+```scala
 /**
  * A tuple where fields can be accessed by name
  *
@@ -155,8 +155,7 @@ mvn clean compile
 scala -classpath jaqen/target/classes
 ```
 Examples: 
-```
-
+```scala
 import ntuple.NTuple._
 
 val foo = "FOO"
@@ -211,7 +210,7 @@ input.map((in) => t('name -> in.name, 'birthYear -> (2014 - in.age))).filter(_('
 
 ```
 Result:
-```
+```scala
 scala> import ntuple.NTuple._
 import ntuple.NTuple._
 
