@@ -3,7 +3,7 @@
 
   <groupId>com.twitter</groupId>
   <artifactId>jaqen</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Jaqen</name>
