@@ -17,8 +17,14 @@
   <dependencies>
     <dependency>
       <groupId>com.twitter</groupId>
-      <artifactId>jaqen</artifactId>
+      <artifactId>jaqen-ntuple</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.scalatest</groupId>
+      <artifactId>scalatest_2.10</artifactId>
+      <version>1.9.2</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
