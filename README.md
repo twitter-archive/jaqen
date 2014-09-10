@@ -10,14 +10,9 @@ The build runs in [Travis CI](http://travis-ci.org/twitter/jaqen):
 [![Build Status](https://secure.travis-ci.org/twitter/jaqen.png?branch=master)](http://travis-ci.org/twitter/jaqen)
 
 ## API: 
-https://github.com/julienledem/Jaqen/blob/master/jaqen/src/main/scala/ntuple/NTuple.scala#L355
+https://github.com/twitter/jaqen/blob/6661c711b20cf16c242e21e9c7f38ed198841016/jaqen-ntuple/src/main/scala/com/twitter/jaqen/ntuple/NTuple.scala#L11
 
 ```scala
-/**
- * A tuple where fields can be accessed by name
- *
- * @author Julien Le Dem
- */
 trait NTuple[T <: NTuple[T]] {
 
   /**
@@ -135,6 +130,7 @@ trait NTuple[T <: NTuple[T]] {
 }
 
 object NTuple {
+
   /**
    * creates a new NTuple from a list of key -> value pairs
    * the types of the values are preserved and will be returned accordingly when apply is called
@@ -146,17 +142,19 @@ object NTuple {
   def t(pairs: Any*) = macro newTupleImpl
 
   implicit def nTupleToString[T <: NTuple[T]](ntuple: T): String = macro nTupleToStringImpl[T]
+
+  implicit def listOfNTupleToRichList[T <: NTuple[T]](list: List[T]) = RichList[T](list)
 }
 ```
 
 ## try it:
 ```
 mvn clean compile
-scala -classpath jaqen/target/classes
+scala -classpath jaqen-ntuple/target/classes
 ```
 Examples: 
 ```scala
-import ntuple.NTuple._
+import com.twitter.jaqen.ntuple.NTuple._
 
 val foo = "FOO"
 val bar = 3
