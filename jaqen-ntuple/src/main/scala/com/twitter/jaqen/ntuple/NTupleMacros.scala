@@ -271,7 +271,7 @@ object NTupleMacros {
     c.Expr[Map[Any, Any]](Apply(Select(reify(Map).tree, newTermName("apply")), mapParams))
   }
 
-  private def mapImpl0[T](c: Context)(pair: c.Expr[Any], tuple: c.universe.Tree)(f: c.Expr[Any])(implicit wttt: c.WeakTypeTag[T]) = {
+  def tupleMapImpl[T](c: Context)(pair: c.Expr[Any], tuple: c.universe.Tree)(f: c.Expr[Any])(implicit wttt: c.WeakTypeTag[T]) = {
     import c.universe._
     val params = wttToParams(c)(wttt)
     val (sources, target) = pair.tree match {
@@ -324,7 +324,7 @@ object NTupleMacros {
 
   def mapImpl[T](c: Context)(pair: c.Expr[Any])(f: c.Expr[Any])(implicit wttt: c.WeakTypeTag[T]) = {
     import c.universe._
-    mapImpl0(c)(pair, c.prefix.tree)(f)(wttt)
+    tupleMapImpl(c)(pair, c.prefix.tree)(f)(wttt)
   }
 
   def listMapImpl[T](c: Context)(pair: c.Expr[Any])(f: c.Expr[Any])(implicit wttt: c.WeakTypeTag[T]) = {
@@ -334,7 +334,7 @@ object NTupleMacros {
       list.splice.list.map(
           c.Expr[Function1[T,Any]](Function(
               List(ValDef(Modifiers(Flag.PARAM), newTermName("t"), TypeTree(), EmptyTree)),
-              mapImpl0(c)(pair, Ident(newTermName("t")))(f)(wttt).tree
+              tupleMapImpl(c)(pair, Ident(newTermName("t")))(f)(wttt).tree
           )).splice)
     }
   }

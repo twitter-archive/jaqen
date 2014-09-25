@@ -78,6 +78,7 @@
 
   <modules>
     <module>jaqen-ntuple</module>
+    <module>jaqen-scalding</module>
     <module>jaqen-test</module>
   </modules>
 
