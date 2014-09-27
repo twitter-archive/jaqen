@@ -68,6 +68,8 @@ trait NTuple[T <: NTuple[T]] {
   /** @see remove */
   def -(key: Any) = macro minusImpl[T]
 
+  def removeAll(keysToRemove: Any*) = macro removeAllImpl[T]
+
   /**
    * takes a key -> value pair and replaces the existing key with the given value
    * if key does not exist, a compilation error will occur

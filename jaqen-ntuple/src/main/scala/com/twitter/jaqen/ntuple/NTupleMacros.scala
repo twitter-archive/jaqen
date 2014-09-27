@@ -140,12 +140,14 @@ object NTupleMacros {
     val r = keys(c)(params).zipWithIndex.collect {
           case (name, index) if (name == kName) => index
         }
-    if (r.isEmpty) c.abort(c.enclosingPosition, show(c.prefix.tree) + " does not contain key " + kName)
+    if (r.isEmpty) c.abort(c.enclosingPosition, show(c.prefix.tree) + " does not contain key " + kName + " in " + keys(c)(params).mkString(","))
     else if (r.size > 1) fail(c)("more than one result for key " + kName)
     r(0)
   }
 
   private def removeIndex[U](i:Int, l: Iterable[U]) = l.zipWithIndex.collect{ case (v, index) if index != i => v } toList
+
+  private def removeIndices[U](indices:Set[Int], l: Iterable[U]) = l.zipWithIndex.collect{ case (v, index) if !indices.contains(index) => v } toList
 
   def applyImp[T](c: Context)(key: c.Expr[Any])(implicit wttt: c.WeakTypeTag[T]) = {
     import c.universe._
@@ -221,6 +223,20 @@ object NTupleMacros {
     val finalKeys = removeIndex(i, keys(c)(params))
     val finalTypes = removeIndex(i, types(c)(params))
     val finalValues = removeIndex(i, 0 until params.size / 2) map ((i) => derefField(c)(c.prefix.tree, i))
+    newTuple(c)(mkTypeParams(c)(finalKeys, finalTypes), finalValues)
+  }
+
+  def removeAllImpl[T](c: Context)(keysToRemove: c.Expr[Any]*)(implicit wttt: c.WeakTypeTag[T]) = {
+    tupleRemoveAllImpl(c)(keysToRemove, c.prefix.tree)(wttt);
+  }
+
+  def tupleRemoveAllImpl[T](c: Context)(keysToRemove: Seq[c.Expr[Any]], tuple: c.universe.Tree)(implicit wttt: c.WeakTypeTag[T]) = {
+    import c.universe._
+    val params = wttToParams(c)(wttt)
+    val indicesToRemove = keysToRemove.map(key => keyIndex(c)(key, wttt)).toSet
+    val finalKeys = removeIndices(indicesToRemove, keys(c)(params))
+    val finalTypes = removeIndices(indicesToRemove, types(c)(params))
+    val finalValues = removeIndices(indicesToRemove, 0 until params.size / 2) map ((i) => derefField(c)(tuple, i))
     newTuple(c)(mkTypeParams(c)(finalKeys, finalTypes), finalValues)
   }
 

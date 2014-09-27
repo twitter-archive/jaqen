@@ -69,11 +69,19 @@ class TestNTuple extends FlatSpec {
     assert(m1 === m2)
   }
 
-  "minus" should "work" in {
+  "minus" should "remove that key" in {
     val t1 = t("a" -> "FOO", "b" -> 3)
     val t2 = t1 - "a"
     val t3 = t1 - "b"
     assert(t2._1 === t1._2)
+    assert(t3._1 === t1._1)
+  }
+
+  "removeAll" should "remove all corresponding keys" in {
+    val t1 = t("a" -> "FOO", "b" -> 3, "c" -> 5l)
+    val t2 = t1.removeAll("a", "b")
+    val t3 = t1.removeAll("b", "c")
+    assert(t2._1 === t1._3)
     assert(t3._1 === t1._1)
   }
 

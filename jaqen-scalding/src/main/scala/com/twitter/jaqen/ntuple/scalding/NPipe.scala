@@ -3,8 +3,7 @@ package com.twitter.jaqen.ntuple.scalding
 import scala.language.experimental.macros
 import com.twitter.jaqen.ntuple.NTuple
 import com.twitter.scalding.typed.TypedPipe
-import scala.reflect.macros.Context
-import com.twitter.jaqen.ntuple.NTupleMacros
+import com.twitter.jaqen.ntuple.scalding.NPipeMacros._
 
 object NPipe {
 
@@ -13,5 +12,7 @@ object NPipe {
 }
 
 case class NPipe[T] (val tpipe: TypedPipe[T]) {
-  def nmap(pair: Any)(f: Any) = macro NPipeMacros.pipeMapImpl[T]
+  type Type = T
+  def nmap(pair: Any)(f: Any) = macro pipeMapImpl[T]
+  def ndiscard(keys: Any*) = macro pipeDropImpl[T]
 }

@@ -17,6 +17,7 @@ class TestJob(args: Args) extends Job(args) {
     case (a, b) => t('a -> a, 'b -> b)
   }
   .nmap(('a, 'b) -> 'c) { (a:Int, b:Int) => a + b }
+  .ndiscard('a, 'b)
   .map((_('c)))
   .write(TypedTsv("output"))
 
