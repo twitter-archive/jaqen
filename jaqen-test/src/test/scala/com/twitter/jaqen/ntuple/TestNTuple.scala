@@ -77,12 +77,22 @@ class TestNTuple extends FlatSpec {
     assert(t3._1 === t1._1)
   }
 
-  "removeAll" should "remove all corresponding keys" in {
+  "discard" should "remove all corresponding keys" in {
     val t1 = t("a" -> "FOO", "b" -> 3, "c" -> 5l)
-    val t2 = t1.removeAll("a", "b")
-    val t3 = t1.removeAll("b", "c")
+    val t2 = t1.discard("a", "b")
+    val t3 = t1.discard("b", "c")
     assert(t2._1 === t1._3)
     assert(t3._1 === t1._1)
+  }
+
+  "project" should "keep all corresponding keys" in {
+    val t1 = t("a" -> "FOO", "b" -> 3, "c" -> 5l)
+    val t2 = t1.project("a", "b")
+    val t3 = t1.project("b", "c")
+    val t4 = t1.project("b")
+    assert((t2._1 === t1._1) && (t2._2 === t1._2))
+    assert((t3._1 === t1._2) && (t3._2 === t1._3))
+    assert(t4._1 === t1._2)
   }
 
   "prefix" should "work" in {

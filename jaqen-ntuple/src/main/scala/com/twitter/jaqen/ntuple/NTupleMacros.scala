@@ -226,17 +226,34 @@ object NTupleMacros {
     newTuple(c)(mkTypeParams(c)(finalKeys, finalTypes), finalValues)
   }
 
-  def removeAllImpl[T](c: Context)(keysToRemove: c.Expr[Any]*)(implicit wttt: c.WeakTypeTag[T]) = {
-    tupleRemoveAllImpl(c)(keysToRemove, c.prefix.tree)(wttt);
+  def discardImpl[T](c: Context)(keysToRemove: c.Expr[Any]*)(implicit wttt: c.WeakTypeTag[T]) = {
+    tupleDiscardImpl(c)(keysToRemove, c.prefix.tree)(wttt);
   }
 
-  def tupleRemoveAllImpl[T](c: Context)(keysToRemove: Seq[c.Expr[Any]], tuple: c.universe.Tree)(implicit wttt: c.WeakTypeTag[T]) = {
+  def tupleDiscardImpl[T](c: Context)(keysToRemove: Seq[c.Expr[Any]], tuple: c.universe.Tree)(implicit wttt: c.WeakTypeTag[T]) = {
     import c.universe._
     val params = wttToParams(c)(wttt)
-    val indicesToRemove = keysToRemove.map(key => keyIndex(c)(key, wttt)).toSet
-    val finalKeys = removeIndices(indicesToRemove, keys(c)(params))
-    val finalTypes = removeIndices(indicesToRemove, types(c)(params))
-    val finalValues = removeIndices(indicesToRemove, 0 until params.size / 2) map ((i) => derefField(c)(tuple, i))
+    val indicesToRemove = keysToRemove.map(key => keyIndex(c)(key, wttt))
+    tupleDiscardIndices(c)(indicesToRemove, tuple, params)
+  }
+
+  def projectImpl[T](c: Context)(keysToKeep: c.Expr[Any]*)(implicit wttt: c.WeakTypeTag[T]) = {
+    tupleProjectImpl(c)(keysToKeep, c.prefix.tree)(wttt);
+  }
+
+  def tupleProjectImpl[T](c: Context)(keysToKeep: Seq[c.Expr[Any]], tuple: c.universe.Tree)(implicit wttt: c.WeakTypeTag[T]) = {
+    import c.universe._
+    val params = wttToParams(c)(wttt)
+    val indicesToRemove = removeIndices(keysToKeep.map(key => keyIndex(c)(key, wttt)).toSet, 0 until params.size / 2)
+    tupleDiscardIndices(c)(indicesToRemove, tuple, params)
+  }
+
+  private def tupleDiscardIndices[T](c: Context)(indicesToRemove: Seq[Int], tuple: c.universe.Tree, params: List[c.universe.Type]) = {
+    import c.universe._
+    val indicesToRemoveSet = indicesToRemove.toSet
+    val finalKeys = removeIndices(indicesToRemoveSet, keys(c)(params))
+    val finalTypes = removeIndices(indicesToRemoveSet, types(c)(params))
+    val finalValues = removeIndices(indicesToRemoveSet, 0 until params.size / 2) map ((i) => derefField(c)(tuple, i))
     newTuple(c)(mkTypeParams(c)(finalKeys, finalTypes), finalValues)
   }
 

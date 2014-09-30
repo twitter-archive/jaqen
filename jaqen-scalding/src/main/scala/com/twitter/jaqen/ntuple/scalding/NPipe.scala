@@ -14,5 +14,6 @@ object NPipe {
 case class NPipe[T] (val tpipe: TypedPipe[T]) {
   type Type = T
   def nmap(pair: Any)(f: Any) = macro pipeMapImpl[T]
-  def ndiscard(keys: Any*) = macro pipeDropImpl[T]
+  def ndiscard(keys: Any*) = macro pipeDiscardImpl[T]
+  def nproject(keys: Any*) = macro pipeProjectImpl[T]
 }

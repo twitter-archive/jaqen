@@ -18,14 +18,26 @@ object NPipeMacros {
     }
   }
 
-  def pipeDropImpl[T](c: Context)(keys: c.Expr[Any]*)(implicit wttt: c.WeakTypeTag[T]) = {
+  def pipeDiscardImpl[T](c: Context)(keys: c.Expr[Any]*)(implicit wttt: c.WeakTypeTag[T]) = {
     import c.universe._
     val npipe = c.Expr[NPipe[T]](c.prefix.tree)
     reify {
       npipe.splice.tpipe.map(
           c.Expr[Function1[T,Any]](Function(
               List(ValDef(Modifiers(Flag.PARAM), newTermName("t"), TypeTree(), EmptyTree)),
-              NTupleMacros.tupleRemoveAllImpl(c)(keys, Ident(newTermName("t")))(wttt).tree
+              NTupleMacros.tupleDiscardImpl(c)(keys, Ident(newTermName("t")))(wttt).tree
+          )).splice)
+    }
+  }
+
+  def pipeProjectImpl[T](c: Context)(keys: c.Expr[Any]*)(implicit wttt: c.WeakTypeTag[T]) = {
+    import c.universe._
+    val npipe = c.Expr[NPipe[T]](c.prefix.tree)
+    reify {
+      npipe.splice.tpipe.map(
+          c.Expr[Function1[T,Any]](Function(
+              List(ValDef(Modifiers(Flag.PARAM), newTermName("t"), TypeTree(), EmptyTree)),
+              NTupleMacros.tupleProjectImpl(c)(keys, Ident(newTermName("t")))(wttt).tree
           )).splice)
     }
   }
