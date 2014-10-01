@@ -23,9 +23,9 @@ trait NTuple[T <: NTuple[T]] {
    * => "2" (of type String)
    * </code>
    */
-  def get(key: Any) = macro applyImp[T]
+  def get(key: Any): Any = macro applyImp[T]
   /** @see get */
-  def apply(key: Any) = macro applyImp[T]
+  def apply(key: Any): Any = macro applyImp[T]
 
   /**
    * adds a pair key -> value to the tuple
@@ -37,9 +37,9 @@ trait NTuple[T <: NTuple[T]] {
    * => t('a -> 1, 'b -> 2, 'c -> 3)
    * </code>
    */
-  def add(pair: (Any, Any)) = macro plusImpl[T]
+  def add(pair: (Any, Any)): Any = macro plusImpl[T]
   /** @see add */
-  def +(pair: (Any, Any)) = macro plusImpl[T]
+  def +(pair: (Any, Any)): Any = macro plusImpl[T]
 
   /**
    * concats another NTuple to this one
@@ -51,9 +51,9 @@ trait NTuple[T <: NTuple[T]] {
    * => t('a -> 1, 'b -> 2, 'c -> 3, 'd -> 4)
    * </code>
    */
-  def concat[T2 <: NTuple[T2]](t: T2) = macro plusplusImpl[T,T2]
+  def concat[T2 <: NTuple[T2]](t: T2): Any = macro plusplusImpl[T,T2]
   /** @see concat */
-  def ++[T2 <: NTuple[T2]](t: T2) = macro plusplusImpl[T,T2]
+  def ++[T2 <: NTuple[T2]](t: T2): Any = macro plusplusImpl[T,T2]
 
   /**
    * removes a key from the tuple
@@ -64,9 +64,9 @@ trait NTuple[T <: NTuple[T]] {
    * => t('b -> 2)
    * </code>
    */
-  def remove(key: Any) = macro minusImpl[T]
+  def remove(key: Any): Any = macro minusImpl[T]
   /** @see remove */
-  def -(key: Any) = macro minusImpl[T]
+  def -(key: Any): Any = macro minusImpl[T]
 
   /**
    * takes a key -> value pair and replaces the existing key with the given value
@@ -78,9 +78,9 @@ trait NTuple[T <: NTuple[T]] {
    * => t('a -> 3, 'b -> 2)
    * </code>
    */
-  def replace(pair: (Any, Any)) = macro replaceImpl[T]
+  def replace(pair: (Any, Any)): Any = macro replaceImpl[T]
   /** @see replace */
-  def -+(pair: (Any, Any)) = macro replaceImpl[T]
+  def -+(pair: (Any, Any)): Any = macro replaceImpl[T]
 
   /**
    * prefixes all the key names with the given prefix.
@@ -91,7 +91,7 @@ trait NTuple[T <: NTuple[T]] {
    * => t('ta -> 1, 'tb -> 2)
    * </code>
    */
-  def prefix(prefix: String) = macro prefixImpl[T]
+  def prefix(prefix: String): Any = macro prefixImpl[T]
 
   /**
    * takes a pair (inputs -> output) and a function
@@ -105,7 +105,7 @@ trait NTuple[T <: NTuple[T]] {
    * => t('a -> 1, 'b -> 2, 'c -> 3)
    * </code>
    */
-  def map(pair: Any)(f: Any) = macro mapImpl[T]
+  def map(pair: Any)(f: Any): Any = macro mapImpl[T]
 
   /**
    * @returns a string representation of this tuple
@@ -115,13 +115,13 @@ trait NTuple[T <: NTuple[T]] {
    * (a -> 1, b -> 2)
    * </code>
    */
-  def mkString = macro mkStringImpl[T]
+  def mkString: String = macro mkStringImpl[T]
 
   /**
    * converts this tuple to a Map.
    * @returns an immutable Map
    */
-  def toMap = macro toMapImpl[T]
+  def toMap: Map[Any, Any] = macro toMapImpl[T]
 }
 
 object NTuple {
@@ -134,7 +134,7 @@ object NTuple {
    * val tuple1 = t('a -> 1, 'b -> "2")
    * </code>
    */
-  def t(pairs: Any*) = macro newTupleImpl
+  def t(pairs: Any*): Any = macro newTupleImpl
 
   implicit def nTupleToString[T <: NTuple[T]](ntuple: T): String = macro nTupleToStringImpl[T]
 
@@ -142,5 +142,5 @@ object NTuple {
 }
 
 case class RichList[T] (val list: List[T]) {
-  def nmap(pair: Any)(f: Any) = macro listMapImpl[T]
+  def nmap(pair: Any)(f: Any): List[Any] = macro listMapImpl[T]
 }

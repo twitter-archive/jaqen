@@ -20,7 +20,7 @@ object NTupleMacros {
     key match {
       case Literal(Constant(v)) => v
       case Apply(Select(Select(Ident(scala), symbol), apply), List(Literal(Constant(key))))
-                   if (apply.decoded == "apply" && scala.decoded == "scala")
+                   if (apply.decodedName.toString == "apply" && scala.decodedName.toString == "scala")
                      => key
       case _ => fail(c)(show(key) + " is not a literal")
     }
@@ -60,11 +60,11 @@ object NTupleMacros {
              ),
              List(TypeTree())),
              List(value)
-          ) if (arrow.decoded == "->" &&
-            (assoc.decoded == "any2ArrowAssoc" || assoc.decoded == "ArrowAssoc"))
+          ) if (arrow.decodedName.toString == "->" &&
+            (assoc.decodedName.toString == "any2ArrowAssoc" || assoc.decodedName.toString == "ArrowAssoc"))
              => (keyName(c)(key), value)
       // allow identifiers directly
-      case value@Ident(name) => (name.decoded, value)
+      case value@Ident(name) => (name.decodedName.toString, value)
       // do we want magically named "expression" -> expression ?
 //      case v => (show(v), v)
       case _ => fail(c)(show(pair.tree) + " is not a valid key-value pair")
@@ -299,11 +299,11 @@ object NTupleMacros {
              ),
              List(TypeTree())),
              List(target)
-          ) if (arrow.decoded == "->"
-                && (assoc.decoded == "any2ArrowAssoc" || assoc.decoded == "ArrowAssoc")
-                && scala.decoded == "scala"
-                && tupleClass.decoded.startsWith("Tuple")
-                && apply.decoded == "apply")
+          ) if (arrow.decodedName.toString == "->"
+                && (assoc.decodedName.toString == "any2ArrowAssoc" || assoc.decodedName.toString == "ArrowAssoc")
+                && scala.decodedName.toString == "scala"
+                && tupleClass.decodedName.toString.startsWith("Tuple")
+                && apply.decodedName.toString == "apply")
              => (sources, target)
       case _ => fail(c)(show(pair.tree) + " is not a valid mapping")
     }
