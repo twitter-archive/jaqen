@@ -209,8 +209,8 @@ input.map((in) => t('name -> in.name, 'birthYear -> (2014 - in.age))).filter(_('
 ```
 Result:
 ```scala
-scala> import ntuple.NTuple._
-import ntuple.NTuple._
+scala> com.twitter.jaqen.ntuple.NTuple._
+import com.twitter.jaqen.ntuple.NTuple._
 
 scala> 
 
@@ -309,7 +309,7 @@ scala>
      | // tuple with named fields!
 
 scala> val t1 = t('a -> foo, 'b -> bar)
-t1: ntuple.NTuple2[String("a"),String,String("b"),Int] = (FOO,3)
+t1: com.twitter.jaqen.ntuple.NTuple2[String("a"),String,String("b"),Int] = (FOO,3)
 
 scala> t1.mkString
 res4: String = (a -> FOO, b -> 3)
@@ -329,7 +329,7 @@ scala> (t1 - 'b).mkString
 res6: String = (a -> FOO)
 
 scala> val t2 = t1 + ('c -> 2)
-t2: ntuple.NTuple3[String("a"),String,String("b"),Int,String("c"),Int(2)] = (FOO,3,2)
+t2: com.twitter.jaqen.ntuple.NTuple3[String("a"),String,String("b"),Int,String("c"),Int(2)] = (FOO,3,2)
 
 scala> t2 + ('c -> 3) // error: t2 already contains key c
 <console>:15: error: t2 already contains key c
@@ -360,7 +360,7 @@ scala> val empty = t()
 empty: ntuple.NTuple0 = ()
 
 scala> val notempty = empty + ("A" -> foo)
-notempty: ntuple.NTuple1[String("A"),String] = FOO
+notempty: com.twitter.jaqen.ntuple.NTuple1[String("A"),String] = FOO
 
 scala> notempty("A")
 res12: String = FOO
