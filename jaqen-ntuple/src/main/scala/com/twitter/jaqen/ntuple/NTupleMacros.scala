@@ -28,6 +28,7 @@ object NTupleMacros {
 
   private def keyNameToKeyType(c: Context)(name: Any): c.universe.Type = {
     import c.universe._
+    import compat._
     ConstantType(Constant(name))
   }
 
@@ -59,7 +60,8 @@ object NTupleMacros {
              ),
              List(TypeTree())),
              List(value)
-          ) if (arrow.decoded == "->" && assoc.decoded == "any2ArrowAssoc")
+          ) if (arrow.decoded == "->" &&
+            (assoc.decoded == "any2ArrowAssoc" || assoc.decoded == "ArrowAssoc"))
              => (keyName(c)(key), value)
       // allow identifiers directly
       case value@Ident(name) => (name.decoded, value)
@@ -268,7 +270,10 @@ object NTupleMacros {
                     )
                 )
             }
-    c.Expr[Map[Any, Any]](Apply(Select(reify(Map).tree, newTermName("apply")), mapParams))
+
+    val anyType = Select(Ident("scala"), newTypeName("Any"))
+
+    c.Expr[Map[Any, Any]](Apply(TypeApply(reify(Map).tree, List(anyType, anyType)), mapParams))
   }
 
   private def mapImpl0[T](c: Context)(pair: c.Expr[Any], tuple: c.universe.Tree)(f: c.Expr[Any])(implicit wttt: c.WeakTypeTag[T]) = {
@@ -295,7 +300,7 @@ object NTupleMacros {
              List(TypeTree())),
              List(target)
           ) if (arrow.decoded == "->"
-                && assoc.decoded == "any2ArrowAssoc"
+                && (assoc.decoded == "any2ArrowAssoc" || assoc.decoded == "ArrowAssoc")
                 && scala.decoded == "scala"
                 && tupleClass.decoded.startsWith("Tuple")
                 && apply.decoded == "apply")
