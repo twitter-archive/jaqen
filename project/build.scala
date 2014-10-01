@@ -10,6 +10,9 @@ object JaqenBuildSettings {
     crossScalaVersions := Seq("2.10.4", "2.11.2"),
     resolvers += Resolver.sonatypeRepo("snapshots"),
     resolvers += Resolver.sonatypeRepo("releases"),
+    addCompilerPlugin(
+      "org.scalamacros" % "paradise" % paradiseVersion cross CrossVersion.full
+    ),
     libraryDependencies ++= Seq(
       "junit" % "junit" % "4.11" % "test",
       "org.scalatest" %% "scalatest" % "2.2.1" % "test"
@@ -34,6 +37,11 @@ object JaqenBuild extends Build {
     settings = buildSettings ++ Seq(
       libraryDependencies <+= (scalaVersion)(
         "org.scala-lang" % "scala-reflect" % _
+      ),
+      libraryDependencies ++= (
+        if (scalaVersion.value.startsWith("2.10"))
+          List("org.scalamacros" %% "quasiquotes" % paradiseVersion)
+        else Nil
       )
     )
   )
