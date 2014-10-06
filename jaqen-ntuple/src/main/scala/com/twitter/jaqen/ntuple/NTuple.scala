@@ -8,7 +8,8 @@ import NTupleMacros._
  *
  * @author Julien Le Dem
  */
-trait NTuple[T <: NTuple[T]] {
+trait NTuple[+T <: NTuple[T]] {
+  type TYPE = T
 
   /**
    * returns the field named 'key' with the proper type
@@ -136,9 +137,15 @@ object NTuple {
    */
   def t(pairs: Any*) = macro newTupleImpl
 
+  def typeOf[T](keys: Any*) = macro typeOfImpl[T]
+
   implicit def nTupleToString[T <: NTuple[T]](ntuple: T): String = macro nTupleToStringImpl[T]
 
   implicit def listOfNTupleToRichList[T <: NTuple[T]](list: List[T]) = RichList[T](list)
+}
+
+final class NTupleType[T <: NTuple[T]]() {
+    type TYPE = T
 }
 
 case class RichList[T] (val list: List[T]) {

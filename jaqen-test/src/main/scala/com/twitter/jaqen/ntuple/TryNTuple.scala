@@ -107,6 +107,26 @@ object TryNTuple {
 //    val tuple14 = tuple11.map(('a, 'b) -> 'a) { (a: Int, b: Int) => a + b }
     println(tuple13.mkString)
 
+    val foo = new NTupleType[tuple13.TYPE]
+//    printExpr(new NTupleType[tuple13.TYPE])
+//    printExpr(NTuple.typeOf[(String, Int)]('a, 'b))
+    val typeOfA = typeOf[(Int, Int)]('a, 'b)
+
+    def f1(in: tuple11.TYPE): tuple13.TYPE = {
+      in.map(('a, 'b) -> 'c) { (a: Int, b: Int) => a + b }
+    }
+
+    def f2(in: typeOfA.TYPE) = {
+      in.map(('a, 'b) -> 'c) { (a: Int, b: Int) => a + b }
+    }
+
+    val tuple11b = f1(tuple11)
+    val tuple11bc = tuple11b('c)
+
+    val tuple11c = f1(tuple11)
+    val tuple11cc = tuple11c('c)
+
+
     val tuple15 = t('a -> 1, 'b -> 2)
     println("blah")
 

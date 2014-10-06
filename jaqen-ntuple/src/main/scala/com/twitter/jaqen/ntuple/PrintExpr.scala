@@ -58,6 +58,7 @@ object PrintExpr {
   def impl(c: Context)(param: c.Expr[Any]): c.Expr[Unit] = {
     import c.universe._
     def lit(s: String) = c.Expr[String](Literal(Constant(s)))
+    Log("printExpr: " + showRaw(param))
     reify {
       println("               param: " + lit(show(param.tree)).splice)
       println("           raw param: " + lit(format(showRaw(param.tree, true, false, true, false))).splice)

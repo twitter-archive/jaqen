@@ -93,4 +93,13 @@ class TestNTuple extends FlatSpec {
     assert(t3("a") === "FOO")
     assert(t3("b") === "BAZ")
   }
+
+  "typeOf" should "enable defining functions" in {
+    val t1 = t("a" -> "FOO", "b" -> 3)
+    val ttype = typeOf[(String, Int)]('a, 'b)
+    def f(tuple: ttype.TYPE) = t1 + ('c -> true)
+    assert(f(t1)('c) === true)
+    assert(f(t1)('b) === 3)
+    assert(f(t1)('a) === "FOO")
+  }
 }

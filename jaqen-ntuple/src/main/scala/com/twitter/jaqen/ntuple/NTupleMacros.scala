@@ -185,6 +185,32 @@ object NTupleMacros {
     }
   }
 
+  private def newNTupleType(c: Context)(finalTypeParams: List[c.universe.Type]) = {
+    import c.universe._
+    try {
+      val t = classType(c)(classOf[NTuple[_]].getName() + (finalTypeParams.size / 2), finalTypeParams)
+      c.Expr[Any](`new`(c)(appliedType(typeOf[NTupleType[_]].typeConstructor, List(t)), List()))
+    } catch {
+      case e: scala.reflect.internal.MissingRequirementError => fail(c)("no NTuple of size " + (finalTypeParams.size / 2))
+    }
+  }
+
+  def typeOfImpl[T](c: Context)(keys: c.Expr[Any]*)(implicit wttt: c.WeakTypeTag[T]) = {
+    import c.universe._
+    val keyTypes = keys.map(key => keyNameToKeyType(c)(keyName(c)(key.tree)))
+    val valueTypes = wttt.tpe match {
+//      TypeRef(SingleType(ThisType(scala), scala.Predef), newTypeName("String"), List())
+      case TypeRef(ThisType(tuplePackage), tupleName, parameters) if (tupleName.fullName.contains("Tuple")) => parameters
+      case _ => fail(c)(showRaw(wttt) + " is not an understood type")
+    }
+    val finalTypeParams = keyTypes.zip(valueTypes).flatMap {
+      case (name, value) => List(name, value)
+    }.toList
+    val r = newNTupleType(c)(finalTypeParams)
+    Log("typeOfImpl: " + showRaw(r))
+    r
+  }
+
   def newTupleImpl(c: Context)(pairs: c.Expr[Any]*) = {
     import c.universe._
     val keyValues = pairs.toList.map(pairToKV(c)(_))
