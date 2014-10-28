@@ -195,7 +195,7 @@ object NTupleMacros {
     }
   }
 
-  def typeOfImpl[T](c: Context)(keys: c.Expr[Any]*)(implicit wttt: c.WeakTypeTag[T]) = {
+  def typeOfImpl[R](c: Context)(keys: c.Expr[Any]*)(implicit wttt: c.WeakTypeTag[R]) = {
     import c.universe._
     val keyTypes = keys.map(key => keyNameToKeyType(c)(keyName(c)(key.tree)))
     val valueTypes = wttt.tpe match {

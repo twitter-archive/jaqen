@@ -9,7 +9,7 @@ import NTupleMacros._
  * @author Julien Le Dem
  */
 trait NTuple[+T <: NTuple[T]] {
-  type TYPE = T
+  type Type = T
 
   /**
    * returns the field named 'key' with the proper type
@@ -137,7 +137,20 @@ object NTuple {
    */
   def t(pairs: Any*) = macro newTupleImpl
 
-  def typeOf[T](keys: Any*) = macro typeOfImpl[T]
+  /**
+   * provides a way to use NTuple types in method signatures
+   * The following will compile:
+   * val type = typeOf[(String, Int)]('a, 'b)
+   * val a: String = "Foo"
+   * val b: Int = 1
+   * val tuple: type.Type = t('a -> a, 'b -> b)
+   * R is a tuple on n types
+   * keys is a list of n field names
+   * @returns an NTupleType[NTuple{n}[K1,V1,K2,V2,...]] whith
+   * @param R the types of the fields: (V1, V, ...)
+   * @param keys the names of the fields: K1, K2, ...
+   */
+  def typeOf[R](keys: Any*) = macro typeOfImpl[R]
 
   implicit def nTupleToString[T <: NTuple[T]](ntuple: T): String = macro nTupleToStringImpl[T]
 
@@ -145,9 +158,9 @@ object NTuple {
 }
 
 final class NTupleType[T <: NTuple[T]]() {
-    type TYPE = T
+    type Type = T
 }
 
-case class RichList[T] (val list: List[T]) {
+case class RichList[T] (val list: List[T]) extends AnyVal {
   def nmap(pair: Any)(f: Any) = macro listMapImpl[T]
 }

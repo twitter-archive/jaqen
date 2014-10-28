@@ -67,7 +67,6 @@ object TryNTuple {
 
     // does not compile: ntuple.NTuple already contains key a
 //    val tuple4 = t('a->1, 'a->2)
-//    println(tuple4('a))
 
     val tuple5 = t("a" -> 1)
     val tuple6 = t("b" -> "bar")
@@ -100,25 +99,20 @@ object TryNTuple {
     val tuple11 = t('a -> 1, 'b ->2)
     val tuple12 = tuple11 + ('c -> (tuple11('a) + tuple11('b)))
     val f = (a: Int, b: Int) => a + b
-//    printExpr((a: Int, b: Int) => a + b)
 
-//    printExpr(f)
     val tuple13 = tuple11.map(('a, 'b) -> 'c) { (a: Int, b: Int) => a + b }
-//    val tuple14 = tuple11.map(('a, 'b) -> 'a) { (a: Int, b: Int) => a + b }
+    // does not compile as 'a already exists
+    // val tuple14 = tuple11.map(('a, 'b) -> 'a) { (a: Int, b: Int) => a + b }
     println(tuple13.mkString)
 
-    val foo = new NTupleType[tuple13.TYPE]
-//    printExpr(new NTupleType[tuple13.TYPE])
-//    printExpr(NTuple.typeOf[(String, Int)]('a, 'b))
+    val foo = new NTupleType[tuple13.Type]
     val typeOfA = typeOf[(Int, Int)]('a, 'b)
 
-    def f1(in: tuple11.TYPE): tuple13.TYPE = {
+    def f1(in: tuple11.Type): tuple13.Type =
       in.map(('a, 'b) -> 'c) { (a: Int, b: Int) => a + b }
-    }
 
-    def f2(in: typeOfA.TYPE) = {
+    def f2(in: typeOfA.Type) =
       in.map(('a, 'b) -> 'c) { (a: Int, b: Int) => a + b }
-    }
 
     val tuple11b = f1(tuple11)
     val tuple11bc = tuple11b('c)
@@ -128,7 +122,6 @@ object TryNTuple {
 
 
     val tuple15 = t('a -> 1, 'b -> 2)
-    println("blah")
 
   }
 }
