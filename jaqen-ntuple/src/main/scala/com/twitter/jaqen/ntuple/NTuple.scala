@@ -9,7 +9,7 @@ import NTupleMacros._
  * @author Julien Le Dem
  */
 trait NTuple[+T <: NTuple[T]] {
-  type Type = T
+  type Type <: T
 
   /**
    * returns the field named 'key' with the proper type
@@ -52,9 +52,9 @@ trait NTuple[+T <: NTuple[T]] {
    * => t('a -> 1, 'b -> 2, 'c -> 3, 'd -> 4)
    * </code>
    */
-  def concat[T2 <: NTuple[T2]](t: T2): Any = macro plusplusImpl[T,T2]
+  def concat[T2 <: NTuple[T2]](t: T2 { type Type <: NTuple[T2] }): Any = macro plusplusImpl[T,T2, T2 { type Type <: NTuple[T2] }]
   /** @see concat */
-  def ++[T2 <: NTuple[T2]](t: T2): Any = macro plusplusImpl[T,T2]
+  def ++[T2 <: NTuple[T2]](t: T2 { type Type <: NTuple[T2] }): Any = macro plusplusImpl[T,T2, T2 { type Type <: NTuple[T2] }]
 
   /**
    * removes a key from the tuple
@@ -153,14 +153,8 @@ object NTuple {
   def typeOf[R](keys: Any*) = macro typeOfImpl[R]
 
   implicit def nTupleToString[T <: NTuple[T]](ntuple: T): String = macro nTupleToStringImpl[T]
-
-  implicit def listOfNTupleToRichList[T <: NTuple[T]](list: List[T]) = RichList[T](list)
 }
 
 final class NTupleType[T <: NTuple[T]]() {
     type Type = T
-}
-
-case class RichList[T] (val list: List[T]) extends AnyVal {
-  def nmap(pair: Any)(f: Any) = macro listMapImpl[T]
 }
