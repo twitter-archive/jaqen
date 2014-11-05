@@ -1,6 +1,7 @@
 package com.twitter.jaqen.ntuple
 
 import scala.language.experimental.macros
+import scala.language.implicitConversions
 import NTupleMacros._
 
 /**
@@ -68,6 +69,28 @@ trait NTuple[+T <: NTuple[T]] {
   def remove(key: Any) = macro minusImpl[T]
   /** @see remove */
   def -(key: Any) = macro minusImpl[T]
+
+  /**
+   * removes a list of keys from the tuple
+   * if a key does not exist, a compilation error will occur
+   * <code>
+   * val tuple = t('a -> 1, 'b -> 2, 'c -> 3)
+   * tuple.discard('a, 'c)
+   * => t('b -> 2)
+   * </code>
+   */
+  def discard(keysToRemove: Any*) = macro discardImpl[T]
+
+  /**
+   * keeps only entries for the list of keys
+   * if a key does not exist, a compilation error will occur
+   * <code>
+   * val tuple = t('a -> 1, 'b -> 2, 'c -> 3)
+   * tuple.project('a, 'c)
+   * => t('a -> 1, 'c -> 3)
+   * </code>
+   */
+  def project(keysToKeep: Any*) = macro projectImpl[T]
 
   /**
    * takes a key -> value pair and replaces the existing key with the given value

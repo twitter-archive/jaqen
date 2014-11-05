@@ -78,6 +78,7 @@
 
   <modules>
     <module>jaqen-ntuple</module>
+    <module>jaqen-scalding</module>
     <module>jaqen-test</module>
   </modules>
 
@@ -137,6 +138,9 @@
         </executions>
         <configuration>
           <scalaVersion>${scala.version}</scalaVersion>
+          <args>
+            <arg>-feature</arg>
+          </args>
         </configuration>
       </plugin>
     </plugins>

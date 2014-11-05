@@ -140,12 +140,14 @@ object NTupleMacros {
     val r = keys(c)(params).zipWithIndex.collect {
           case (name, index) if (name == kName) => index
         }
-    if (r.isEmpty) c.abort(c.enclosingPosition, show(c.prefix.tree) + " does not contain key " + kName)
+    if (r.isEmpty) c.abort(c.enclosingPosition, show(c.prefix.tree) + " does not contain key " + kName + " in " + keys(c)(params).mkString(","))
     else if (r.size > 1) fail(c)("more than one result for key " + kName)
     r(0)
   }
 
-  private def removeIndex[U](i:Int, l: Iterable[U]) = l.zipWithIndex.collect{ case (v, index) if index != i => v } toList
+  private def removeIndex[U](i:Int, l: Iterable[U]) = l.zipWithIndex.collect{ case (v, index) if index != i => v }.toList
+
+  private def removeIndices[U](indices:Set[Int], l: Iterable[U]) = l.zipWithIndex.collect{ case (v, index) if !indices.contains(index) => v }.toList
 
   def applyImp[T](c: Context)(key: c.Expr[Any])(implicit wttt: c.WeakTypeTag[T]) = {
     import c.universe._
@@ -250,6 +252,37 @@ object NTupleMacros {
     newTuple(c)(mkTypeParams(c)(finalKeys, finalTypes), finalValues)
   }
 
+  def discardImpl[T](c: Context)(keysToRemove: c.Expr[Any]*)(implicit wttt: c.WeakTypeTag[T]) = {
+    tupleDiscardImpl(c)(keysToRemove, c.prefix.tree)(wttt);
+  }
+
+  def tupleDiscardImpl[T](c: Context)(keysToRemove: Seq[c.Expr[Any]], tuple: c.universe.Tree)(implicit wttt: c.WeakTypeTag[T]) = {
+    import c.universe._
+    val params = wttToParams(c)(wttt)
+    val indicesToRemove = keysToRemove.map(key => keyIndex(c)(key, wttt))
+    tupleDiscardIndices(c)(indicesToRemove, tuple, params)
+  }
+
+  def projectImpl[T](c: Context)(keysToKeep: c.Expr[Any]*)(implicit wttt: c.WeakTypeTag[T]) = {
+    tupleProjectImpl(c)(keysToKeep, c.prefix.tree)(wttt);
+  }
+
+  def tupleProjectImpl[T](c: Context)(keysToKeep: Seq[c.Expr[Any]], tuple: c.universe.Tree)(implicit wttt: c.WeakTypeTag[T]) = {
+    import c.universe._
+    val params = wttToParams(c)(wttt)
+    val indicesToRemove = removeIndices(keysToKeep.map(key => keyIndex(c)(key, wttt)).toSet, 0 until params.size / 2)
+    tupleDiscardIndices(c)(indicesToRemove, tuple, params)
+  }
+
+  private def tupleDiscardIndices[T](c: Context)(indicesToRemove: Seq[Int], tuple: c.universe.Tree, params: List[c.universe.Type]) = {
+    import c.universe._
+    val indicesToRemoveSet = indicesToRemove.toSet
+    val finalKeys = removeIndices(indicesToRemoveSet, keys(c)(params))
+    val finalTypes = removeIndices(indicesToRemoveSet, types(c)(params))
+    val finalValues = removeIndices(indicesToRemoveSet, 0 until params.size / 2) map ((i) => derefField(c)(tuple, i))
+    newTuple(c)(mkTypeParams(c)(finalKeys, finalTypes), finalValues)
+  }
+
   def replaceImpl[T](c: Context)(pair: c.Expr[(Any, Any)])(implicit wttt: c.WeakTypeTag[T]) = {
     import c.universe._
 
@@ -297,7 +330,7 @@ object NTupleMacros {
     c.Expr[Map[Any, Any]](Apply(Select(reify(Map).tree, newTermName("apply")), mapParams))
   }
 
-  private def mapImpl0[T](c: Context)(pair: c.Expr[Any], tuple: c.universe.Tree)(f: c.Expr[Any])(implicit wttt: c.WeakTypeTag[T]) = {
+  def tupleMapImpl[T](c: Context)(pair: c.Expr[Any], tuple: c.universe.Tree)(f: c.Expr[Any])(implicit wttt: c.WeakTypeTag[T]) = {
     import c.universe._
     val params = wttToParams(c)(wttt)
     val (sources, target) = pair.tree match {
@@ -350,7 +383,7 @@ object NTupleMacros {
 
   def mapImpl[T](c: Context)(pair: c.Expr[Any])(f: c.Expr[Any])(implicit wttt: c.WeakTypeTag[T]) = {
     import c.universe._
-    mapImpl0(c)(pair, c.prefix.tree)(f)(wttt)
+    tupleMapImpl(c)(pair, c.prefix.tree)(f)(wttt)
   }
 
   def listMapImpl[T](c: Context)(pair: c.Expr[Any])(f: c.Expr[Any])(implicit wttt: c.WeakTypeTag[T]) = {
@@ -360,7 +393,7 @@ object NTupleMacros {
       list.splice.list.map(
           c.Expr[Function1[T,Any]](Function(
               List(ValDef(Modifiers(Flag.PARAM), newTermName("t"), TypeTree(), EmptyTree)),
-              mapImpl0(c)(pair, Ident(newTermName("t")))(f)(wttt).tree
+              tupleMapImpl(c)(pair, Ident(newTermName("t")))(f)(wttt).tree
           )).splice)
     }
   }
