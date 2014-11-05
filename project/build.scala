@@ -6,8 +6,8 @@ object JaqenBuildSettings {
     organization := "com.twitter",
     version := "0.1.1-SNAPSHOT",
     scalacOptions ++= Seq("-deprecation"),
-    scalaVersion := "2.11.2",
-    crossScalaVersions := Seq("2.10.4", "2.11.2"),
+    scalaVersion := "2.11.4",
+    crossScalaVersions := Seq("2.10.4", "2.11.4"),
     resolvers += Resolver.sonatypeRepo("snapshots"),
     resolvers += Resolver.sonatypeRepo("releases"),
     addCompilerPlugin(
