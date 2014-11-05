@@ -1,9 +1,12 @@
 package com.twitter.jaqen.ntuple.scalding
 
 import scala.language.experimental.macros
+import scala.language.implicitConversions
+
 import com.twitter.jaqen.ntuple.NTuple
 import com.twitter.scalding.typed.TypedPipe
 import com.twitter.jaqen.ntuple.scalding.NPipeMacros._
+
 
 object NPipe {
 

@@ -1,6 +1,7 @@
 package com.twitter.jaqen.ntuple
 
 import scala.language.experimental.macros
+import scala.language.implicitConversions
 import NTupleMacros._
 
 /**

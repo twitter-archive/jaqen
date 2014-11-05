@@ -145,9 +145,9 @@ object NTupleMacros {
     r(0)
   }
 
-  private def removeIndex[U](i:Int, l: Iterable[U]) = l.zipWithIndex.collect{ case (v, index) if index != i => v } toList
+  private def removeIndex[U](i:Int, l: Iterable[U]) = l.zipWithIndex.collect{ case (v, index) if index != i => v }.toList
 
-  private def removeIndices[U](indices:Set[Int], l: Iterable[U]) = l.zipWithIndex.collect{ case (v, index) if !indices.contains(index) => v } toList
+  private def removeIndices[U](indices:Set[Int], l: Iterable[U]) = l.zipWithIndex.collect{ case (v, index) if !indices.contains(index) => v }.toList
 
   def applyImp[T](c: Context)(key: c.Expr[Any])(implicit wttt: c.WeakTypeTag[T]) = {
     import c.universe._
