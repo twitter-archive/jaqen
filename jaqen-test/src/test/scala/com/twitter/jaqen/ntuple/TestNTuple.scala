@@ -14,7 +14,7 @@ class TestNTuple extends FlatSpec {
 
   "empty ntuple" should "be of the correct type" in {
     val empty = t()
-    assert(empty.getClass() === classOf[NTuple0])
+    assert(classOf[NTuple0].isAssignableFrom(empty.getClass()))
   }
 
   "empty + pair" should "be the same as new tuple of pair" in {

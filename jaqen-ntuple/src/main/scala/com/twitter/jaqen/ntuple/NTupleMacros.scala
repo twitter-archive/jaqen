@@ -20,7 +20,7 @@ object NTupleMacros {
     key match {
       case Literal(Constant(v)) => v
       case Apply(Select(Select(Ident(scala), symbol), apply), List(Literal(Constant(key))))
-                   if (apply.decoded == "apply" && scala.decoded == "scala")
+                   if (apply.decodedName.toString == "apply" && scala.decodedName.toString == "scala")
                      => key
       case _ => fail(c)(show(key) + " is not a literal")
     }
@@ -28,6 +28,7 @@ object NTupleMacros {
 
   private def keyNameToKeyType(c: Context)(name: Any): c.universe.Type = {
     import c.universe._
+    import compat._
     ConstantType(Constant(name))
   }
 
@@ -37,11 +38,6 @@ object NTupleMacros {
       case ConstantType(Constant(name)) => name
       case _ => fail(c)(showRaw(t) + " type is not understood")
     }
-  }
-
-  private def `new`(c: Context)(t: c.Type, params: List[c.universe.Tree]) = {
-    import c.universe._
-    Apply(Select(New(TypeTree(t)), nme.CONSTRUCTOR), params)
   }
 
   private def pairToKV(c: Context)(pair: c.Expr[Any]): (Any, c.universe.Tree) = {
@@ -59,10 +55,11 @@ object NTupleMacros {
              ),
              List(TypeTree())),
              List(value)
-          ) if (arrow.decoded == "->" && assoc.decoded == "any2ArrowAssoc")
+          ) if (arrow.decodedName.toString == "->" &&
+            (assoc.decodedName.toString == "any2ArrowAssoc" || assoc.decodedName.toString == "ArrowAssoc"))
              => (keyName(c)(key), value)
       // allow identifiers directly
-      case value@Ident(name) => (name.decoded, value)
+      case value@Ident(name) => (name.decodedName.toString, value)
       // do we want magically named "expression" -> expression ?
 //      case v => (show(v), v)
       case _ => fail(c)(show(pair.tree) + " is not a valid key-value pair")
@@ -72,6 +69,7 @@ object NTupleMacros {
   private def wttToParams(c: Context)(wtt: c.WeakTypeTag[_]) = {
     import c.universe._
     wtt.tpe match {
+      case RefinedType(List(TypeRef(ThisType(ntuplePackage), nTupleName, parameters)), _) if (nTupleName.fullName.contains("NTuple")) => parameters
       case TypeRef(ThisType(ntuplePackage), nTupleName, parameters) if (nTupleName.fullName.contains("NTuple")) => parameters
       case _ => fail(c)(showRaw(wtt) + " is not an understood type")
     }
@@ -123,7 +121,7 @@ object NTupleMacros {
         fail(c)("keys size does not match values size " + distinctKeys.size + " != " + finalParams.size)
       }
       val t = classType(c)(classOf[NTuple[_]].getName() + finalParams.size, finalTypeParams)
-      c.Expr[Any](`new`(c)(t, finalParams))
+      c.Expr[Any](q"new $t(..$finalParams) { type Type = $t }")
     } catch {
       case e: scala.reflect.internal.MissingRequirementError => fail(c)("no NTuple of size " + finalParams.size)
     }
@@ -154,8 +152,10 @@ object NTupleMacros {
     c.Expr[Any](derefField(c)(c.prefix.tree, keyIndex(c)(key, wttt)))
   }
 
-  def plusplusImpl[T1,T2](c: Context)(t: c.Expr[T2])(implicit wttt1: c.WeakTypeTag[T1], wttt2: c.WeakTypeTag[T2]) = {
+  def plusplusImpl[T1, T2, T2R](c: Context)(t: c.Expr[T2R])(implicit wttt1: c.WeakTypeTag[T1], wttt2: c.WeakTypeTag[T2]) = {
     import c.universe._
+
+
     val params1 = wttToParams(c)(wttt1)
     val params2 = wttToParams(c)(wttt2)
 
@@ -169,29 +169,34 @@ object NTupleMacros {
     import c.universe._
     val params = wttToParams(c)(wttt)
 
-    val toStringParams = keys(c)(params)
-            .zipWithIndex
-            .flatMap {
-              case (name, index) => List(
-                  Literal(Constant(name)),
-                  Literal(Constant(" -> ")),
-                  derefField(c)(c.prefix.tree, index),
-                  Literal(Constant(", "))
-              )
-            }.dropRight(1)
+    val prefixName = newTermName(c.fresh)
 
-    val list = c.Expr[List[Any]](Apply(Select(reify(List).tree, newTermName("apply")), toStringParams))
-
-    reify {
-      "(" + list.splice.mkString("") + ")"
+    val toStringParams = keys(c)(params).zipWithIndex.map {
+      case (name, index) =>
+        q"""
+          ${ name.toString } +
+          " -> " +
+          $prefixName.${ newTermName(s"_${ index + 1 }") }.toString
+        """
     }
+
+    c.Expr[String](
+      q"""
+      {
+        val $prefixName = ${ c.prefix.tree }
+
+        "(" + scala.List(..$toStringParams).mkString(", ") + ")"
+      }
+      """
+    )
   }
 
   private def newNTupleType(c: Context)(finalTypeParams: List[c.universe.Type]) = {
     import c.universe._
     try {
       val t = classType(c)(classOf[NTuple[_]].getName() + (finalTypeParams.size / 2), finalTypeParams)
-      c.Expr[Any](`new`(c)(appliedType(typeOf[NTupleType[_]].typeConstructor, List(t)), List()))
+      //c.Expr[Any](`new`(c)(appliedType(typeOf[NTupleType[_]].typeConstructor, List(t)), List()))
+      c.Expr[Any](q"new NTupleType[$t]")
     } catch {
       case e: scala.reflect.internal.MissingRequirementError => fail(c)("no NTuple of size " + (finalTypeParams.size / 2))
     }
@@ -218,7 +223,7 @@ object NTupleMacros {
     val keyValues = pairs.toList.map(pairToKV(c)(_))
 
     val finalTypeParams = keyValues.flatMap {
-      case (name, value) => List(keyNameToKeyType(c)(name), c.Expr[Any](value).actualType)
+      case (name, value) => List(keyNameToKeyType(c)(name), c.Expr[Any](value).actualType.widen)
     }
     val finalParams = keyValues.map {
       case (name, value) => value
@@ -316,18 +321,17 @@ object NTupleMacros {
     import c.universe._
     val params = wttToParams(c)(wttt)
     val ts = types(c)(params)
-    val mapParams = keys(c)(params)
-            .zipWithIndex
-            .map {
-              case (name, index) =>
-                Apply(Select(reify(Tuple2).tree, newTermName("apply")),
-                    List(
-                        Literal(Constant(name)),
-                        derefField(c)(c.prefix.tree, index)
-                    )
-                )
-            }
-    c.Expr[Map[Any, Any]](Apply(Select(reify(Map).tree, newTermName("apply")), mapParams))
+    val mapParams = keys(c)(params).zipWithIndex.map {
+      case (name, index) =>
+        q"""
+          (
+            ${ Literal(Constant(name)) },
+            ${ c.prefix.tree }.${ newTermName(s"_${ index + 1 }") }
+          )
+        """
+    }
+
+    c.Expr[Map[Any, Any]](q"Map[Any, Any](..$mapParams)")
   }
 
   def tupleMapImpl[T](c: Context)(pair: c.Expr[Any], tuple: c.universe.Tree)(f: c.Expr[Any])(implicit wttt: c.WeakTypeTag[T]) = {
@@ -353,11 +357,11 @@ object NTupleMacros {
              ),
              List(TypeTree())),
              List(target)
-          ) if (arrow.decoded == "->"
-                && assoc.decoded == "any2ArrowAssoc"
-                && scala.decoded == "scala"
-                && tupleClass.decoded.startsWith("Tuple")
-                && apply.decoded == "apply")
+          ) if (arrow.decodedName.toString == "->"
+                && (assoc.decodedName.toString == "any2ArrowAssoc" || assoc.decodedName.toString == "ArrowAssoc")
+                && scala.decodedName.toString == "scala"
+                && tupleClass.decodedName.toString.startsWith("Tuple")
+                && apply.decodedName.toString == "apply")
              => (sources, target)
       case _ => fail(c)(show(pair.tree) + " is not a valid mapping")
     }
@@ -389,6 +393,7 @@ object NTupleMacros {
   def listMapImpl[T](c: Context)(pair: c.Expr[Any])(f: c.Expr[Any])(implicit wttt: c.WeakTypeTag[T]) = {
     import c.universe._
     val list = c.Expr[RichList[T]](c.prefix.tree)
+
     reify {
       list.splice.list.map(
           c.Expr[Function1[T,Any]](Function(
@@ -402,22 +407,19 @@ object NTupleMacros {
     import c.universe._
     val params = wttToParams(c)(wttt)
 
-    val toStringParams = keys(c)(params)
-            .zipWithIndex
-            .flatMap {
-              case (name, index) => List(
-                  Literal(Constant(name)),
-                  Literal(Constant(" -> ")),
-                  derefField(c)(ntuple.tree, index),
-                  Literal(Constant(", "))
-              )
-            }.dropRight(1)
-
-    val list = c.Expr[List[Any]](Apply(Select(reify(List).tree, newTermName("apply")), toStringParams))
-
-    reify {
-      "(" + list.splice.mkString("") + ")"
+    val toStringParams = keys(c)(params).zipWithIndex.map {
+      case (name, index) =>
+        q"""
+          ${ name.toString } +
+          " -> " +
+          $ntuple.${ newTermName(s"_${ index + 1 }") }.toString
+        """
     }
-  }
 
+    c.Expr[String](
+      q"""
+        "(" + scala.List(..$toStringParams).mkString(", ") + ")"
+      """
+    )
+  }
 }
